@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace Pcysl5edgo.GitRevisionBuilder.Nuget;
 
-public readonly struct CheckoutType : IParsable<CheckoutType>, IEquatable<CheckoutType>, ISpanFormattable
+public readonly struct CheckoutType : IParsable<CheckoutType>, IEquatable<CheckoutType>
 {
     private CheckoutType(byte type) => this.type = type;
     private readonly byte type;
@@ -88,27 +88,4 @@ public readonly struct CheckoutType : IParsable<CheckoutType>, IEquatable<Checko
     public override readonly bool Equals(object? obj) => obj is CheckoutType other && Equals(other);
 
     public override readonly int GetHashCode() => type;
-
-    public readonly bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-    {
-        switch (type)
-        {
-            case 0:
-                charsWritten = 6;
-                TextBranch.CopyTo(destination);
-                break;
-            case 1:
-                charsWritten = 3;
-                TextTag.CopyTo(destination);
-                break;
-            case 2:
-                charsWritten = 6;
-                TextCommit.CopyTo(destination);
-                break;
-        }
-
-        throw new InvalidDataException(nameof(type));
-    }
-
-    public readonly string ToString(string? format, IFormatProvider? formatProvider) => ToString();
 }

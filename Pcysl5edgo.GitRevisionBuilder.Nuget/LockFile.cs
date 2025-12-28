@@ -9,7 +9,7 @@ public sealed class LockFile : IDisposable
 
     private LockFile(FileStream stream) => this.stream = stream;
 
-    public static LockFile Lock(string lockFilePath) => new(new(lockFilePath, FileMode.CreateNew, FileAccess.Read, FileShare.None, 0, FileOptions.DeleteOnClose));
+    public static LockFile Lock(string lockFilePath) => new(new(lockFilePath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 0, FileOptions.DeleteOnClose));
 
     public void Dispose()
     {

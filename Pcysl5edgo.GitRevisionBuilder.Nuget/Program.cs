@@ -42,7 +42,7 @@ public static class Program
                 [1]: "branch"/"tag/"commit"
                 [2]: checkout name
                 [3]: nupkg output destination directory path
-                [4]?: additional option passed to `dotnet pack --configuration Release --output [3]`
+                [4]?: additional option passed to `dotnet pack --configuration Release -p:PackageVersion=0.0.1 --output [3]`
                 """);
             return 1;
         }
@@ -57,6 +57,7 @@ public static class Program
             return 1;
         }
 
+        Console.Error.WriteLine("Successfully ends. Press Ctrl+C");
         await taskCompletionSource.Task;
         return 0;
     }
@@ -69,7 +70,7 @@ public static class Program
         var checkoutType = CheckoutType.Parse(checkoutTypeText);
         var gitFolderPath = Repository.Discover(inputPath);
         var assemblySuffix = $"_{checkoutType}_{checkoutNameText}";
-        var outputNupkgFilePath = Path.Combine(outputDirectoryPath, Path.GetFileNameWithoutExtension(csprojPath) + assemblySuffix);
+        var outputNupkgFilePath = Path.Combine(outputDirectoryPath, $"{Path.GetFileNameWithoutExtension(csprojPath)}{assemblySuffix}.0.0.1.nupkg");
         if (File.Exists(outputNupkgFilePath))
         {
             Console.Error.WriteLine($"nupkg file already exists. {outputNupkgFilePath}");
@@ -118,7 +119,10 @@ public static class Program
 
     private static async ValueTask StartPackProcessAsync(string csprojPath, string additionalPackParam, CancellationToken cancellationToken)
     {
-        var start = ProcessX.StartAsync("dotnet", additionalPackParam.Length != 0 ? $"pack --configuration Release {additionalPackParam}" : "pack --configuration Release", Path.GetDirectoryName(csprojPath));
+        var start = ProcessX.StartAsync("dotnet",
+                additionalPackParam.Length != 0 ? $"pack --configuration Release {additionalPackParam}" : "pack --configuration Release",
+                Path.GetDirectoryName(csprojPath),
+                encoding: System.Text.Encoding.UTF8);
         await foreach (var line in start.WithCancellation(cancellationToken))
         {
             Console.Error.WriteLine(line);
@@ -143,7 +147,7 @@ public static class Program
         cancellationToken.ThrowIfCancellationRequested();
         propertyGroupElement.SetProperty("IsPackable", "True");
         cancellationToken.ThrowIfCancellationRequested();
-        propertyGroupElement.SetProperty("PackageId", "${AssemblyName}");
+        propertyGroupElement.SetProperty("PackageId", "$(AssemblyName)");
         cancellationToken.ThrowIfCancellationRequested();
         propertyGroupElement.SetProperty("PackageVersion", "0.0.1");
         cancellationToken.ThrowIfCancellationRequested();
