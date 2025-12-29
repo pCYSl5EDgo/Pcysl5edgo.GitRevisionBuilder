@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Construction;
 using Cysharp.Diagnostics;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace Pcysl5edgo.GitRevisionBuilder.Nuget;
 
@@ -117,11 +119,24 @@ public static class Program
         }
     }
 
+    private static Dictionary<string, string> GetEnvironmentVariableDictionary()
+    {
+        var answer = new Dictionary<string, string>();
+        foreach (var pair in Environment.GetEnvironmentVariables())
+        {
+            var entry = (DictionaryEntry)pair;
+            answer.Add((string)entry.Key, (string)(entry.Value ?? ""));
+        }
+
+        return answer;
+    }
+
     private static async ValueTask StartPackProcessAsync(string csprojPath, string additionalPackParam, CancellationToken cancellationToken)
     {
         var start = ProcessX.StartAsync("dotnet",
                 additionalPackParam.Length != 0 ? $"pack --configuration Release {additionalPackParam}" : "pack --configuration Release",
                 Path.GetDirectoryName(csprojPath),
+                environmentVariable: GetEnvironmentVariableDictionary(),
                 encoding: System.Text.Encoding.UTF8);
         await foreach (var line in start.WithCancellation(cancellationToken))
         {
