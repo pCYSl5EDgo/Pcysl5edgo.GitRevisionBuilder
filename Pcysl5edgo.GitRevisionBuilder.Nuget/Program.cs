@@ -14,18 +14,6 @@ namespace Pcysl5edgo.GitRevisionBuilder.Nuget;
 
 public static class Program
 {
-    private static string? FindCsprojFilePath(string path)
-    {
-        if (path.EndsWith(".csproj"))
-        {
-            return path;
-        }
-        else
-        {
-            return Directory.EnumerateFiles(path, "*.csproj", SearchOption.TopDirectoryOnly).FirstOrDefault();
-        }
-    }
-
     public static async Task<int> Main(string[] args)
     {
         using CancellationTokenSource cancellationTokenSource = new();
@@ -116,6 +104,18 @@ public static class Program
         finally
         {
             lockFile?.Dispose();
+        }
+    }
+
+    private static string? FindCsprojFilePath(string path)
+    {
+        if (path.EndsWith(".csproj"))
+        {
+            return path;
+        }
+        else
+        {
+            return Directory.EnumerateFiles(path, "*.csproj", SearchOption.TopDirectoryOnly).FirstOrDefault();
         }
     }
 
