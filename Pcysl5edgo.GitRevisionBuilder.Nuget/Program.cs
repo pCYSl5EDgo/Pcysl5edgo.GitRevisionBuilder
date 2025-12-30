@@ -1,18 +1,18 @@
+using Cysharp.Diagnostics;
 using LibGit2Sharp;
+using Microsoft.Build.Construction;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Construction;
-using Cysharp.Diagnostics;
-using System.Collections.Generic;
-using System.Collections;
 
 namespace Pcysl5edgo.GitRevisionBuilder.Nuget;
 
-public static class Program
+public static partial class Program
 {
     public static async Task<int> Main(string[] args)
     {
@@ -39,7 +39,24 @@ public static class Program
 
         try
         {
-            await PackAsync(args[0], args[1], args[2], args[3], args.Length >= 5 ? args[4] : "", cancellationTokenSource.Token);
+            var csprojFilePath = FindCsprojFilePath(args[0]);
+            if (string.IsNullOrWhiteSpace(csprojFilePath))
+            {
+                throw new NullReferenceException(csprojFilePath);
+            }
+
+            var lockFile = default(LockFile);
+            try
+            {
+                var gitFolder = Repository.Discover(args[0]);
+                using var repository = new Repository(gitFolder);
+                await PackAsync(repository, csprojFilePath, args[3], [new CheckoutPair(CheckoutType.Parse(args[1]), args[2], args.Length >= 5 ? args[4] : default)], cancellationTokenSource.Token);
+            }
+            finally
+            {
+                lockFile?.Dispose();
+            }
+
         }
         catch (Exception e)
         {
@@ -52,59 +69,53 @@ public static class Program
         return 0;
     }
 
-    public static async ValueTask PackAsync(string inputPath, string checkoutTypeText, string checkoutNameText, string outputDirectoryPath, string additionalPackParam, CancellationToken cancellationToken = default)
+    public static async ValueTask PackAsync(Repository repository, string csprojPath, string outputDirectoryPath, CheckoutPair[] checkoutPairs, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        var csprojPath = FindCsprojFilePath(inputPath);
-        ArgumentNullException.ThrowIfNull(csprojPath);
-        var checkoutType = CheckoutType.Parse(checkoutTypeText);
-        var gitFolderPath = Repository.Discover(inputPath);
-        var assemblySuffix = $"_{checkoutType}_{checkoutNameText}";
-        var outputNupkgFilePath = Path.Combine(outputDirectoryPath, $"{Path.GetFileNameWithoutExtension(csprojPath)}{assemblySuffix}.0.0.1.nupkg");
-        if (File.Exists(outputNupkgFilePath))
-        {
-            Console.Error.WriteLine($"nupkg file already exists. {outputNupkgFilePath}");
-            return;
-        }
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(checkoutNameText);
-        LockFile? lockFile = default;
-        cancellationToken.ThrowIfCancellationRequested();
+        Branch originalHead = repository.Head;
         try
         {
-            lockFile = LockFile.Lock(Path.Combine(gitFolderPath, ".lock.file"));
-            cancellationToken.ThrowIfCancellationRequested();
-            using var repository = new Repository(gitFolderPath);
-            cancellationToken.ThrowIfCancellationRequested();
-            var originalHeadBranch = repository.Head;
-            try
+            var csprojName = Path.GetFileName(csprojPath);
+            foreach (var checkoutPair in checkoutPairs)
             {
-                if (checkoutType == CheckoutType.Branch)
+                cancellationToken.ThrowIfCancellationRequested();
+                Commit targetCommit = FindCommit(repository, checkoutPair);
+                var assemblySuffix = $".{targetCommit.Id.Sha}";
+                var outputNupkgFilePath = Path.Combine(outputDirectoryPath, $"{csprojName}{assemblySuffix}.0.0.1.nupkg");
+                if (File.Exists(outputNupkgFilePath))
                 {
-                    Commands.Checkout(repository, repository.Branches[checkoutNameText]);
-                }
-                else if (checkoutType == CheckoutType.Tag)
-                {
-                    Commands.Checkout(repository, (Commit)repository.Tags[checkoutNameText].PeeledTarget);
-                }
-                else
-                {
-                    Debug.Assert(checkoutType == CheckoutType.Commit);
-                    Commands.Checkout(repository, repository.Lookup<Commit>(checkoutNameText));
+                    Console.Error.WriteLine($"nupkg file already exists. {outputNupkgFilePath}");
+                    continue;
                 }
 
+                Commands.Checkout(repository, targetCommit);
                 EnsurePackable(csprojPath, outputDirectoryPath, assemblySuffix, cancellationToken);
-                await StartPackProcessAsync(csprojPath, additionalPackParam, cancellationToken);
-            }
-            finally
-            {
-                Commands.Checkout(repository, originalHeadBranch, new CheckoutOptions() { CheckoutModifiers = CheckoutModifiers.Force });
+                await StartPackProcessAsync(csprojPath, checkoutPair.AdditionalOption, cancellationToken);
             }
         }
         finally
         {
-            lockFile?.Dispose();
+            Commands.Checkout(repository, originalHead, new() { CheckoutModifiers = CheckoutModifiers.Force });
         }
+    }
+
+    private static Commit FindCommit(Repository repository, in CheckoutPair checkoutPair)
+    {
+        Commit targetCommit;
+        if (checkoutPair.Type == CheckoutType.Commit)
+        {
+            targetCommit = repository.Lookup<Commit>(checkoutPair.Name);
+        }
+        else if (checkoutPair.Type == CheckoutType.Branch)
+        {
+            targetCommit = repository.Branches[checkoutPair.Name].Tip;
+        }
+        else
+        {
+            Debug.Assert(checkoutPair.Type == CheckoutType.Tag);
+            targetCommit = (Commit)repository.Tags[checkoutPair.Name].PeeledTarget;
+        }
+
+        return targetCommit;
     }
 
     private static string? FindCsprojFilePath(string path)
@@ -131,10 +142,10 @@ public static class Program
         return answer;
     }
 
-    private static async ValueTask StartPackProcessAsync(string csprojPath, string additionalPackParam, CancellationToken cancellationToken)
+    private static async ValueTask StartPackProcessAsync(string csprojPath, string? additionalPackParam, CancellationToken cancellationToken)
     {
         var start = ProcessX.StartAsync("dotnet",
-                additionalPackParam.Length != 0 ? $"pack --configuration Release {additionalPackParam}" : "pack --configuration Release",
+                string.IsNullOrWhiteSpace(additionalPackParam) ? "pack --configuration Release" : $"pack --configuration Release {additionalPackParam}",
                 Path.GetDirectoryName(csprojPath),
                 environmentVariable: GetEnvironmentVariableDictionary(),
                 encoding: System.Text.Encoding.UTF8);
