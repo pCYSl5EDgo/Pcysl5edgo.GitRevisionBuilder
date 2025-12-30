@@ -29,10 +29,11 @@ public static partial class Program
         {
             Console.Error.WriteLine("""
                 [0]: input csproj file path or project root directory path
-                [1]: "branch"/"tag/"commit"
-                [2]: checkout name
-                [3]: nupkg output destination directory path
-                [4]?: additional option passed to `dotnet pack --configuration Release -p:PackageVersion=0.0.1 --output [3]`
+                [1]: nupkg output destination directory path
+                -c/--commit [commit id]: commit id
+                -b/--branch [branch name]: branch name
+                -t/--tag [tag name]: tag name
+                --option [option command]: additional option passed to `dotnet pack`
                 """);
             return 1;
         }
@@ -45,12 +46,35 @@ public static partial class Program
                 throw new NullReferenceException(csprojFilePath);
             }
 
+            var outputDestinationDirectoryPath = args[1];
+            var checkoutPairs = new List<CheckoutPair>();
+            for (var i = 2; i + 2 <= args.Length;)
+            {
+                var checkoutType = args[i++] switch
+                {
+                    "-b" or "--branch" => CheckoutType.Branch,
+                    "-c" or "--commit" => CheckoutType.Commit,
+                    "-t" or "--tag" => CheckoutType.Tag,
+                    _ => throw new InvalidDataException(),
+                };
+
+                var checkoutName = args[i++];
+                var option = default(string);
+                if (i + 2 <= args.Length && args[i] == "--option")
+                {
+                    option = args[i + 1];
+                    i += 2;
+                }
+
+                checkoutPairs.Add(new(checkoutType, checkoutName, option));
+            }
+
             var lockFile = default(LockFile);
             try
             {
                 var gitFolder = Repository.Discover(args[0]);
                 using var repository = new Repository(gitFolder);
-                await PackAsync(repository, csprojFilePath, args[3], [new CheckoutPair(CheckoutType.Parse(args[1]), args[2], args.Length >= 5 ? args[4] : default)], cancellationTokenSource.Token);
+                await PackAsync(repository, csprojFilePath, outputDestinationDirectoryPath, checkoutPairs, cancellationTokenSource.Token);
             }
             finally
             {
@@ -69,7 +93,7 @@ public static partial class Program
         return 0;
     }
 
-    public static async ValueTask PackAsync(Repository repository, string csprojPath, string outputDirectoryPath, CheckoutPair[] checkoutPairs, CancellationToken cancellationToken)
+    public static async ValueTask PackAsync(Repository repository, string csprojPath, string outputDirectoryPath, IEnumerable<CheckoutPair> checkoutPairs, CancellationToken cancellationToken)
     {
         Branch originalHead = repository.Head;
         try
@@ -167,7 +191,6 @@ public static partial class Program
         var projectRootElement = File.Exists(targets) ? ProjectRootElement.Open(targets) : ProjectRootElement.Create(targets);
         cancellationToken.ThrowIfCancellationRequested();
         var propertyGroupElement = FindPropertyGroup(projectRootElement);
-        cancellationToken.ThrowIfCancellationRequested();
         cancellationToken.ThrowIfCancellationRequested();
         propertyGroupElement.SetProperty("AssemblyName", "$(MSBuildProjectName)" + assemblySuffix);
         cancellationToken.ThrowIfCancellationRequested();
