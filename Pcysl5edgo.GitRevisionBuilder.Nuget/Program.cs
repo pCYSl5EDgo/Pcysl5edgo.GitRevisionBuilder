@@ -1,14 +1,6 @@
 using Cysharp.Diagnostics;
 using LibGit2Sharp;
 using Microsoft.Build.Construction;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Pcysl5edgo.GitRevisionBuilder.Nuget;
 

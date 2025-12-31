@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-
 namespace Pcysl5edgo.GitRevisionBuilder.Nuget;
 
 public sealed class LockFile : IDisposable

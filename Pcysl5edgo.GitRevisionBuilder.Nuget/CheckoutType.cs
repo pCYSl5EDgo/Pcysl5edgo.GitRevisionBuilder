@@ -1,8 +1,3 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Runtime.CompilerServices;
-
 namespace Pcysl5edgo.GitRevisionBuilder.Nuget;
 
 public readonly struct CheckoutType : IParsable<CheckoutType>, IEquatable<CheckoutType>
