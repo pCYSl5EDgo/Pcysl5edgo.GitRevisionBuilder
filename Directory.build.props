@@ -6,6 +6,7 @@
 		<OutputType>Library</OutputType>
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>14</LangVersion>
 	</PropertyGroup>
 
     <ItemGroup>
