@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>pack-git</ToolCommandName>
+    <PackageTags>dotnet-tool;cli;utility</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
