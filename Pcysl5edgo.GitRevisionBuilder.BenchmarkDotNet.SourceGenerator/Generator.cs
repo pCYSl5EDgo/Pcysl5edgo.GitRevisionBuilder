@@ -9,10 +9,11 @@ namespace Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator;
 [Generator(LanguageNames.CSharp)]
 public sealed class Generator : IIncrementalGenerator
 {
+    public const string FullyQualifiedMetadataName = "Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplateAttribute";
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(EmitInitialSource);
-        var benchmarkDatas = context.SyntaxProvider.ForAttributeWithMetadataName("Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.BenchmarkTemplateAttribute", Filter, Converter);
+        var benchmarkDatas = context.SyntaxProvider.ForAttributeWithMetadataName(FullyQualifiedMetadataName, Filter, Converter);
         context.RegisterSourceOutput(benchmarkDatas, Generate);
     }
 
@@ -75,6 +76,11 @@ public sealed class Generator : IIncrementalGenerator
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+        if (method.Parent is null)
+        {
+            return false;
+        }
+
         if (method.Parent is not ClassDeclarationSyntax @class || !@class.Modifiers.Any(SyntaxKind.PartialKeyword))
         {
             return false;
@@ -192,37 +198,5 @@ public sealed class Generator : IIncrementalGenerator
         }
 
         return (@namespace, name);
-    }
-
-    private static void EmitInitialSource(IncrementalGeneratorPostInitializationContext context)
-    {
-        context.AddEmbeddedAttributeDefinition();
-        context.AddSource("BenchmarkTemplateAttribute.g.cs", SourceText.From("""
-            namespace Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet;
-            
-            [global::System.AttributeUsage(global::System.AttributeTargets.Method, AllowMultiple = true, Inherited = false), global::Microsoft.CodeAnalysis.Embedded]
-            internal sealed class BenchmarkTemplateAttribute(string commitId, [global::System.Runtime.CompilerServices.CallerLineNumber] int sourceCodeLineNumber = 0, [global::System.Runtime.CompilerServices.CallerFilePath] string sourceCodeFile = "") : global::System.Attribute
-            {
-                public int SourceCodeLineNumber { get; } = sourceCodeLineNumber;
-                public string SourceCodeFile { get; } = sourceCodeFile;
-            
-                public bool Baseline { get; set; }
-            
-                public string? Description { get; set; }
-
-                public string Alias { get; set; } = "global";
-            
-                public int OperationsPerInvoke { get; set; }
-            
-                /// <summary>
-                /// Absolute path or relative path from current benchmark project folder.
-                /// </summary>
-                public string? ProjectPath { get; set; }
-            
-                public string CommitId { get; } = commitId;
-            
-                public string? PackOption { get; set; }
-            }
-            """, encoding: System.Text.Encoding.ASCII));
     }
 }
