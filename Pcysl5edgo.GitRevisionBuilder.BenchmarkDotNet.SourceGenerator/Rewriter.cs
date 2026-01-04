@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator;
 
-internal sealed class Rewriter : CSharpSyntaxRewriter
+internal sealed class Rewriter : CSharpSyntaxVisitor<SyntaxNode>
 {
     public string From = "global";
     public string To = "global";
