@@ -5,6 +5,9 @@
 		<IsRoslynComponent>true</IsRoslynComponent>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<AnalyzerLanguage>cs</AnalyzerLanguage>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<DevelopmentDependency>true</DevelopmentDependency>
+		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 	</PropertyGroup>
 
 	<ItemGroup>
