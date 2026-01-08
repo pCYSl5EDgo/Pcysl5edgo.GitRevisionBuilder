@@ -8,6 +8,7 @@ internal sealed class Rewriter : CSharpSyntaxRewriter
 {
     public string From = "global";
     public string To = "global";
+    public string MethodName = "";
 
     public override SyntaxNode? VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
     {
@@ -26,6 +27,6 @@ internal sealed class Rewriter : CSharpSyntaxRewriter
         var visited = (MethodDeclarationSyntax)base.VisitMethodDeclaration(node)!;
         return visited
             .WithAttributeLists(default)
-            .WithIdentifier(SyntaxFactory.Identifier(node.Identifier.Text + '_' + To).WithTriviaFrom(node.Identifier));
+            .WithIdentifier(SyntaxFactory.Identifier(MethodName).WithTriviaFrom(node.Identifier));
     }
 }

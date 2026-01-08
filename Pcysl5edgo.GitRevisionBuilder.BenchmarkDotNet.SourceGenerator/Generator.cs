@@ -115,6 +115,7 @@ public sealed class Generator : IIncrementalGenerator
             rewriter.From = "global";
             bool baseLine = default;
             string? description = default;
+            string? methodName = default;
             int operationsPerInvoke = default;
             var commitIdTypedContant = attributeData.ConstructorArguments[0];
             if (commitIdTypedContant.Kind != TypedConstantKind.Primitive || commitIdTypedContant.IsNull)
@@ -165,11 +166,28 @@ public sealed class Generator : IIncrementalGenerator
 
                         operationsPerInvoke = (int)argument.Value.Value!;
                         break;
+                    case nameof(TemplateData.MethodName):
+                        if (argument.Value.IsNull)
+                        {
+                            throw new InvalidDataException();
+                        }
+
+                        methodName = (string)argument.Value.Value!;
+                        break;
                 }
             }
 
             var rewrittenText = rewriter.Visit(context.TargetNode).ToString();
-            answer[answerIndex++] = new(rewriter.To, rewriter.From, baseLine, description, operationsPerInvoke, rewrittenText);
+            if (string.IsNullOrWhiteSpace(methodName))
+            {
+                rewriter.MethodName = (((MethodDeclarationSyntax)context.TargetNode).Identifier.Text) + rewriter.To;
+            }
+            else
+            {
+                rewriter.MethodName = methodName!;
+            }
+
+            answer[answerIndex++] = new(rewriter.To, rewriter.MethodName, rewriter.From, baseLine, description, operationsPerInvoke, rewrittenText);
         }
 
         Array.Sort(answer);
