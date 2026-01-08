@@ -9,7 +9,11 @@
 		<LangVersion>14</LangVersion>
         <Version>0.0.1</Version>
         <Authors>pCYSl5EDgo</Authors>
+        <RepositoryUrl>https://github.com/pCYSl5EDgo/Pcysl5edgo.GitRevisionBuilder</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <IsPackable>true</IsPackable>
 	</PropertyGroup>
 
     <ItemGroup>
