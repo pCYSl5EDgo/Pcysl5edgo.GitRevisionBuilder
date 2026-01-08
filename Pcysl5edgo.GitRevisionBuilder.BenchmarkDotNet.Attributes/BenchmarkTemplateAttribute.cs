@@ -7,6 +7,8 @@ public sealed class BenchmarkTemplateAttribute(string commitId) : Attribute
 
     public string? Description { get; set; }
 
+    public string? MethodName { get; set; }
+
     public string Alias { get; set; } = "global";
 
     public int OperationsPerInvoke { get; set; }
