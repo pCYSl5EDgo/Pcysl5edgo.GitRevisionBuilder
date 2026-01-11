@@ -1,6 +1,6 @@
 namespace Pcysl5edgo.GitRevisionBuilder.Nuget;
 
-public sealed class LockFile : IDisposable
+internal sealed class LockFile : IDisposable
 {
     private FileStream? stream;
 

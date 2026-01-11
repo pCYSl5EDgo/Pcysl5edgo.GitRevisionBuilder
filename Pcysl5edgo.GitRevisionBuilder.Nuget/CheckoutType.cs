@@ -1,6 +1,6 @@
 namespace Pcysl5edgo.GitRevisionBuilder.Nuget;
 
-public readonly struct CheckoutType : IParsable<CheckoutType>, IEquatable<CheckoutType>
+internal readonly struct CheckoutType : IParsable<CheckoutType>, IEquatable<CheckoutType>
 {
     private CheckoutType(byte type) => this.type = type;
     private readonly byte type;

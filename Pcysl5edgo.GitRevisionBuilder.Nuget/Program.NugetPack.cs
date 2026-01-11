@@ -73,7 +73,7 @@ partial class Program
         return 0;
     }
 
-    public static async ValueTask PackAsync(Repository repository, string csprojFilePath, IEnumerable<CheckoutPair> checkoutPairs, CancellationToken cancellationToken)
+    private static async ValueTask PackAsync(Repository repository, string csprojFilePath, IEnumerable<CheckoutPair> checkoutPairs, CancellationToken cancellationToken)
     {
         Branch originalHead = repository.Head;
         try

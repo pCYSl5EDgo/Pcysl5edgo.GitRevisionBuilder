@@ -6,11 +6,21 @@ using System.Text;
 
 namespace Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator;
 
+/// <summary>
+/// Source generator that produces benchmark clone methods from BenchmarkTemplateAttribute usages.
+/// </summary>
 [Generator(LanguageNames.CSharp)]
 public sealed class Generator : IIncrementalGenerator
 {
+    /// <summary>
+    /// Fully qualified metadata name for the benchmark template attribute.
+    /// </summary>
     public const string FullyQualifiedMetadataName = "Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplateAttribute";
 
+    /// <summary>
+    /// Initialize the incremental generator.
+    /// </summary>
+    /// <param name="context">The initialization context provided by the compiler.</param>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var benchmarkDatas = context.SyntaxProvider.ForAttributeWithMetadataName(FullyQualifiedMetadataName, Filter, Converter);

@@ -6,6 +6,9 @@ using System.Collections.Immutable;
 
 namespace Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator;
 
+/// <summary>
+/// Analyzer for validating usage of <see cref="Generator.FullyQualifiedMetadataName"/> attributed benchmark methods.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DiagnosticAnalyzer : Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer
 {
@@ -19,6 +22,9 @@ public sealed class DiagnosticAnalyzer : Microsoft.CodeAnalysis.Diagnostics.Diag
     private static readonly DiagnosticDescriptor descriptorAliasNeverAppear = new("PGBS007", "Alias never appears", "{0}", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
 #pragma warning restore RS2008
 
+    /// <summary>
+    /// Gets the diagnostics supported by this analyzer.
+    /// </summary>
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [
         descriptorMethodMustHaveBody,
         descriptorContainerMustBeClass,
@@ -29,6 +35,10 @@ public sealed class DiagnosticAnalyzer : Microsoft.CodeAnalysis.Diagnostics.Diag
         descriptorAliasNeverAppear,
     ];
 
+    /// <summary>
+    /// Initialize analyzer execution.
+    /// </summary>
+    /// <param name="context">The analysis context.</param>
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
