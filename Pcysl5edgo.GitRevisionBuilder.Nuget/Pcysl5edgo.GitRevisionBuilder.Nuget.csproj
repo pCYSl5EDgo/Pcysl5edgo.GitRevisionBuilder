@@ -1,16 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <PackAsTool>true</PackAsTool>
-    <ToolCommandName>pack-git</ToolCommandName>
-    <PackageTags>dotnet-tool;cli;utility</PackageTags>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<PackAsTool>true</PackAsTool>
+		<ToolCommandName>gitrev-nupkg</ToolCommandName>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="LibGit2Sharp" Version="0.31.0" />
-    <PackageReference Include="Microsoft.Build" Version="18.0.2" />
-    <PackageReference Include="ProcessX" Version="1.5.6" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="LibGit2Sharp" Version="0.31.0" />
+		<PackageReference Include="Microsoft.Build" Version="18.0.2" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+		<PackageReference Include="ProcessX" Version="1.5.6" />
+	</ItemGroup>
 
 </Project>

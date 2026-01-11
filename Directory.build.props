@@ -7,13 +7,15 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>14</LangVersion>
-        <Version>0.0.1</Version>
+        <Version>0.0.2</Version>
         <Authors>pCYSl5EDgo</Authors>
         <RepositoryUrl>https://github.com/pCYSl5EDgo/Pcysl5edgo.GitRevisionBuilder</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <IsPackable>true</IsPackable>
+        <InvariantGlobalization>true</InvariantGlobalization>
+        <SelfContained>false</SelfContained>
 	</PropertyGroup>
 
     <ItemGroup>
