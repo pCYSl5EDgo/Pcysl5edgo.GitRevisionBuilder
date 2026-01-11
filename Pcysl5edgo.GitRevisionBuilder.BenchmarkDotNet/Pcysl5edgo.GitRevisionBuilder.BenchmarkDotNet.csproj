@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+	</PropertyGroup>
+
+	<ItemGroup>
+        <ProjectReference Include="..\Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes\Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.csproj" PrivateAssets="All" />
+        <ProjectReference Include="..\Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator\Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator.csproj" PrivateAssets="All" />
+
+		<None Include="$(OutputPath)\Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator.dll" Pack="true" PackagePath="analyzer/roslyn5.0/dotnet/cs"  Visible="false" />
+		<None Include="$(OutputPath)\Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.dll" Pack="true" PackagePath="lib\netstandard2.0"  Visible="false" />
+		<None Include="$(OutputPath)\Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.xml" Pack="true" PackagePath="lib\netstandard2.0"  Visible="false" />
+	</ItemGroup>
+
+</Project>

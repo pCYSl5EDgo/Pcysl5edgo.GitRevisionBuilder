@@ -17,10 +17,7 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
 
-		<None Include="$(OutputPath)$(AssemblyName).dll">
-			<Pack>true</Pack>
-			<PackagePath>analyzers\roslyn5.0\dotnet\cs</PackagePath>
-		</None>
+		<None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers\roslyn5.0\dotnet\cs" Visible="false" />
 	</ItemGroup>
 
 </Project>

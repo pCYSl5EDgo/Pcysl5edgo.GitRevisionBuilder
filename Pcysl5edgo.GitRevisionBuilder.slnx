@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes/Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.csproj" Id="50dbc4a0-8046-4c60-8cf7-2e137ff6d38b" />
   <Project Path="Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator/Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator.csproj" Id="293a0d8b-db54-44c2-b88e-1ed25a81249e" />
+  <Project Path="Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet/Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.csproj" />
   <Project Path="Pcysl5edgo.GitRevisionBuilder.Nuget/Pcysl5edgo.GitRevisionBuilder.Nuget.csproj" />
 </Solution>

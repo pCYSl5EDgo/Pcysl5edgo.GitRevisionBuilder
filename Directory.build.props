@@ -16,6 +16,7 @@
         <IsPackable>true</IsPackable>
         <InvariantGlobalization>true</InvariantGlobalization>
         <SelfContained>false</SelfContained>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
     <ItemGroup>
@@ -29,5 +30,7 @@
         <Using Include="System.Runtime.CompilerServices" />
         <Using Include="System.Threading" />
         <Using Include="System.Threading.Tasks" />
+
+        <None Include="README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 </Project>
