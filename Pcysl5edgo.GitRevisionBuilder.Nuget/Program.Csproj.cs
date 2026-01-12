@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -16,13 +17,14 @@ partial class Program
     private const string CommandCsprojError = """
         [0]: csproj file path or project folder path.
         [1]: local nuget source folder path.
-        --overwrite []: overwrite target/props file. Default is [0] csproj file.
+        -o/--overwrite []: overwrite target/props file. Default is [0] csproj file.
+        -d/--define-constants []: define constants.
         """;
 
     private static async ValueTask<int> CommandCsprojAsync(string[] args, CancellationToken cancellationToken)
     {
-        PraseArgs(args, out var projectFolder, out var nugetSourceFolder, out var overwriteTargetPath);
-        using var info = new FileProcessInfo(Environment.CurrentDirectory, nugetSourceFolder);
+        PraseArgs(args, out var projectFolder, out var nugetSourceFolder, out var overwriteTargetPath, out var defineConstants);
+        using var info = new FileProcessInfo(Environment.CurrentDirectory, nugetSourceFolder, defineConstants);
         using (var linked = CancellationTokenSource.CreateLinkedTokenSource(info.ErrorSource.Token, cancellationToken))
         {
             await Parallel.ForEachAsync(Directory.EnumerateFiles(projectFolder, "*.cs", SearchOption.AllDirectories), cancellationToken, info.ProcessEachFileAsync).ConfigureAwait(false);
@@ -67,8 +69,9 @@ partial class Program
         projectRootElement.Save(Encoding.UTF8);
     }
 
-    private static void PraseArgs(string[] args, out string projectFolder, out string nugetSourceFolder, out string overwriteTargetPath)
+    private static void PraseArgs(string[] args, out string projectFolder, out string nugetSourceFolder, out string overwriteTargetPath, out HashSet<string>? defineConstants)
     {
+        defineConstants = default;
         if (args.Length < 3 || string.IsNullOrWhiteSpace(args[1]) || string.IsNullOrWhiteSpace(args[2]))
         {
             throw new InvalidDataException(CommandCsprojError);
@@ -92,19 +95,33 @@ partial class Program
 
         nugetSourceFolder = args[2];
 
-        if (args.Length >= 5 && args[3] == "--overwrite" && string.IsNullOrWhiteSpace(overwriteTargetPath = args[4]))
+        for (int index = 3; index + 2 <= args.Length; index += 2)
         {
-            throw new InvalidDataException(CommandCsprojError);
+            switch (args[index])
+            {
+                case "-o":
+                case "--overwrite":
+                    if (string.IsNullOrWhiteSpace(overwriteTargetPath = args[index + 1]))
+                    {
+                        throw new InvalidDataException(CommandCsprojError);
+                    }
+                    break;
+                case "-d":
+                case "--define-constants":
+                    (defineConstants ??= []).Add(args[index + 1]);
+                    break;
+            }
         }
     }
 
-    private sealed class FileProcessInfo(string relativeRootPath, string nugetSourceDirectoryPath) : IDisposable
+    private sealed class FileProcessInfo(string relativeRootPath, string nugetSourceDirectoryPath, IEnumerable<string>? defineConstants) : IDisposable
     {
         private readonly ConcurrentBag<(string CsprojFolderPath, string CommitId, string? Option)> bag = [];
         private static readonly CSharpParseOptions parseOptions = new(LanguageVersion.Latest, DocumentationMode.None, SourceCodeKind.Regular, ["RELEASE"]);
         public readonly CancellationTokenSource ErrorSource = new();
         private readonly string relativeRootPath = relativeRootPath;
         private readonly string nugetSourceDirectoryPath = nugetSourceDirectoryPath;
+        private readonly IEnumerable<string>? defineConstants = defineConstants;
         public readonly ConcurrentBag<(string PackageName, string Aliases)> PackageReferenceBag = [];
 
         public Dictionary<string, Dictionary<string, HashSet<(string CommitId, string? Option)>>> CalculateDictionary()
@@ -123,7 +140,6 @@ partial class Program
         public async ValueTask ProcessEachFileAsync(string filePath, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            Console.Error.WriteLine($"Processing C# file: {filePath}...");
             if (!File.Exists(filePath))
             {
                 return;
@@ -136,12 +152,14 @@ partial class Program
                 return;
             }
 
+            Console.Error.WriteLine($"Processing C# file: {filePath}...");
             var sourceText = SourceText.From(sourceBinary, sourceBinary.Length, Encoding.UTF8);
-            var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, parseOptions, filePath, cancellationToken);
+            var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, parseOptions.WithPreprocessorSymbols(defineConstants), filePath, cancellationToken);
             var root = syntaxTree.GetRoot(cancellationToken);
-            foreach (var methodDeclaration in root.DescendantNodes(static node => node is MethodDeclarationSyntax).OfType<MethodDeclarationSyntax>())
+            foreach (var methodDeclaration in root.DescendantNodes(static node => !node.IsKind(SyntaxKind.MethodDeclaration)).OfType<MethodDeclarationSyntax>())
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                Console.Error.WriteLine($" method {methodDeclaration.Identifier.Text} @ line {methodDeclaration.GetLocation().GetLineSpan().StartLinePosition.Line}...");
                 foreach (var attributeList in methodDeclaration.AttributeLists)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -159,6 +177,7 @@ partial class Program
                             continue;
                         }
 
+                        Console.Error.WriteLine($"Processing attribute in {filePath} @ line {methodDeclaration.GetLocation().GetLineSpan().StartLinePosition.Line}...");
                         var projectPath = default(string);
                         var commitId = default(string);
                         var packOption = default(string);
@@ -207,11 +226,15 @@ partial class Program
             }
         }
 
-        private static bool IsAppropriateAttributeName(NameSyntax name) => name.ToString() switch
+        private static bool IsAppropriateAttributeName(NameSyntax name)
         {
-            "BenchmarkTemplate" or "BenchmarkTemplateAttribute" or "Attributes.BenchmarkTemplate" or "Attributes.BenchmarkTemplateAttribute" or "BenchmarkDotNet.Attributes.BenchmarkTemplate" or "BenchmarkDotNet.Attributes.BenchmarkTemplateAttribute" or "GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplate" or "GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplateAttribute" or "Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplate" or "Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplateAttribute" or "global::Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplate" or "global::Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplateAttribute" => true,
-            _ => false,
-        };
+            Console.Error.WriteLine($"  attribute name {name}");
+            return name.ToString() switch
+            {
+                "BenchmarkTemplate" or "BenchmarkTemplateAttribute" or "Attributes.BenchmarkTemplate" or "Attributes.BenchmarkTemplateAttribute" or "BenchmarkDotNet.Attributes.BenchmarkTemplate" or "BenchmarkDotNet.Attributes.BenchmarkTemplateAttribute" or "GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplate" or "GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplateAttribute" or "Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplate" or "Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplateAttribute" or "global::Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplate" or "global::Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.Attributes.BenchmarkTemplateAttribute" => true,
+                _ => false,
+            };
+        }
 
         public void Dispose()
         {
