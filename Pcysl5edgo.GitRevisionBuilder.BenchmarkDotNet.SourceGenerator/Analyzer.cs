@@ -10,16 +10,16 @@ namespace Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator;
 /// Analyzer for validating usage of <see cref="Generator.FullyQualifiedMetadataName"/> attributed benchmark methods.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class DiagnosticAnalyzer : Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer
+public sealed class Analyzer : DiagnosticAnalyzer
 {
 #pragma warning disable RS2008
-    private static readonly DiagnosticDescriptor descriptorMethodMustHaveBody = new("PGBS001", "Benchmark method must have body or expression body", "", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
-    private static readonly DiagnosticDescriptor descriptorContainerMustBeClass = new("PGBS002", "Benchmark method must be contained in non-generic class", "", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
-    private static readonly DiagnosticDescriptor descriptorContainingClassMustBePartial = new("PGBS003", "Class containing benchmark method must be partial", "", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
-    private static readonly DiagnosticDescriptor descriptorContainingClassMustNotBeContained = new("PGBS004", "Class containing benchmark method must not be contained by other type", "", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
-    private static readonly DiagnosticDescriptor descriptorCommitIdMustNotBeNullOrWhitespace = new("PGBS005", "CommitId must not be null nor whitespace", "", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
-    private static readonly DiagnosticDescriptor descriptorCommitIdIsInvalid = new("PGBS006", "CommitId must be sha", "", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
-    private static readonly DiagnosticDescriptor descriptorAliasNeverAppear = new("PGBS007", "Alias never appears", "{0}", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor descriptorMethodMustHaveBody = new("PGBS001", "Benchmark method must have body or expression body", "Benchmark method must have body or expression body", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor descriptorContainerMustBeClass = new("PGBS002", "Benchmark method must be contained in non-generic class", "Benchmark method must be contained in non-generic class", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor descriptorContainingClassMustBePartial = new("PGBS003", "Class containing benchmark method must be partial", "Class containing benchmark method must be partial", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor descriptorContainingClassMustNotBeContained = new("PGBS004", "Class containing benchmark method must not be contained by other type", "Class containing benchmark method must not be contained by other type", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor descriptorCommitIdMustNotBeNullOrWhitespace = new("PGBS005", "CommitId must not be null nor whitespace", "CommitId must not be null nor whitespace", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor descriptorCommitIdIsInvalid = new("PGBS006", "CommitId must be sha", "CommitId must be sha", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor descriptorAliasNeverAppear = new("PGBS007", "Alias never appears", "Alias never appears: {0}", "Usage", DiagnosticSeverity.Error, isEnabledByDefault: true);
 #pragma warning restore RS2008
 
     /// <summary>

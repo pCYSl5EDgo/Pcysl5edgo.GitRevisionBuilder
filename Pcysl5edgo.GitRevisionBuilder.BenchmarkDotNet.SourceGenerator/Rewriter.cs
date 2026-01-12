@@ -9,6 +9,13 @@ internal sealed class Rewriter : CSharpSyntaxRewriter
     public string From = "global";
     public string To = "global";
     public string MethodName = "";
+    public readonly SortedSet<string> Aliases = [];
+
+    public override SyntaxNode? VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
+    {
+        Aliases.Add(node.Identifier.Text);
+        return node;
+    }
 
     public override SyntaxNode? VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
     {

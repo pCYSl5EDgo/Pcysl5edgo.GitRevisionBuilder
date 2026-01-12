@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator;
@@ -30,9 +31,12 @@ public sealed class Generator : IIncrementalGenerator
     private static void Generate(SourceProductionContext context, BenchmarkData benchmarkData)
     {
         var builder = new StringBuilder();
-        foreach (var templateData in benchmarkData.TemplateDatas)
+        foreach (var alias in benchmarkData.Aliases)
         {
-            builder.Append("extern alias ").AppendLine(templateData.CommitId);
+            if (alias != "global")
+            {
+                builder.Append("extern alias ").AppendLine(alias);
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(benchmarkData.Namespace))
@@ -105,11 +109,16 @@ public sealed class Generator : IIncrementalGenerator
         cancellationToken.ThrowIfCancellationRequested();
         var (@namespace, name) = CollectClassName((ClassDeclarationSyntax)context.TargetNode.Parent!, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
-        var templateDatas = context.Attributes.Length == 0 ? [] : CollectTemplateData(context, cancellationToken);
-        return new();
+        if (context.Attributes.Length == 0)
+        {
+            return new(@namespace, name, [], []);
+        }
+
+        var (templateDatas, aliases) = CollectTemplateData(context, cancellationToken);
+        return new(@namespace, name, templateDatas, aliases);
     }
 
-    private static TemplateData[] CollectTemplateData(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
+    private static (ImmutableArray<TemplateData>, ImmutableArray<string>) CollectTemplateData(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
     {
         var rewriter = new Rewriter();
         var answer = new TemplateData[context.Attributes.Length];
@@ -201,7 +210,8 @@ public sealed class Generator : IIncrementalGenerator
         }
 
         Array.Sort(answer);
-        return answer;
+        rewriter.Aliases.Remove("global");
+        return (ImmutableArray.Create(answer), [.. rewriter.Aliases]);
     }
 
     private (string? Namespace, string Name) CollectClassName(ClassDeclarationSyntax @class, CancellationToken cancellationToken)
