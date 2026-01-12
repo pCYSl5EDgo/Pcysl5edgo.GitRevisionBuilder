@@ -7,7 +7,18 @@ namespace Pcysl5edgo.GitRevisionBuilder.BenchmarkDotNet.SourceGenerator;
 internal sealed class Rewriter : CSharpSyntaxRewriter
 {
     public string From = "global";
-    public string To = "global";
+    public string To
+    {
+        get;
+        set
+        {
+            field = value;
+            if (field != "global")
+            {
+                Aliases.Add(field);
+            }
+        }
+    } = "global";
     public string MethodName = "";
     public readonly SortedSet<string> Aliases = [];
 
