@@ -4,6 +4,7 @@
 		<OutputType>Exe</OutputType>
 		<PackAsTool>true</PackAsTool>
 		<ToolCommandName>gitrev-nupkg</ToolCommandName>
+		<StartupObject>Pcysl5edgo.GitRevisionBuilder.Nuget.Program</StartupObject>
 	</PropertyGroup>
 
 	<ItemGroup>

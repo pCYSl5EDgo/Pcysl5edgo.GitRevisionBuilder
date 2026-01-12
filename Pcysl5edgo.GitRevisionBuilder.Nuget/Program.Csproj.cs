@@ -123,6 +123,7 @@ partial class Program
         public async ValueTask ProcessEachFileAsync(string filePath, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            Console.Error.WriteLine($"Processing C# file: {filePath}...");
             if (!File.Exists(filePath))
             {
                 return;

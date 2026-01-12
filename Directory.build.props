@@ -7,7 +7,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>14</LangVersion>
-        <Version>0.0.7</Version>
+        <Version>0.0.8</Version>
         <Authors>pCYSl5EDgo</Authors>
         <RepositoryUrl>https://github.com/pCYSl5EDgo/Pcysl5edgo.GitRevisionBuilder</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
