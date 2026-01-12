@@ -35,7 +35,7 @@ public sealed class Generator : IIncrementalGenerator
         {
             if (alias != "global")
             {
-                builder.Append("extern alias ").AppendLine(alias);
+                builder.Append("extern alias ").Append(alias).AppendLine(";");
             }
         }
 
