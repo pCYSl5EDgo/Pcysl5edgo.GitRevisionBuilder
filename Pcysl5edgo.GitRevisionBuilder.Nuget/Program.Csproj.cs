@@ -253,7 +253,9 @@ partial class Program
                                 csprojDirectoryPath,
                                 envs,
                                 Encoding.UTF8);
-                            await process.WaitAsync(cancellationToken).ConfigureAwait(false);
+                            var waitTask = process.WaitAsync(cancellationToken);
+                            Console.Error.WriteLine($"Packing {assemblyName}...");
+                            await waitTask.ConfigureAwait(false);
                         }
                         {
                             // add nupkg to source directory
@@ -272,7 +274,9 @@ partial class Program
                                 Environment.CurrentDirectory,
                                 envs,
                                 Encoding.UTF8);
-                            await process.WaitAsync(cancellationToken).ConfigureAwait(false);
+                            var waitTask = process.WaitAsync(cancellationToken);
+                            Console.Error.WriteLine($"Nuget pushing {assemblyName}.0.0.1.nupkg to {nugetSourceDirectoryPath}");
+                            await waitTask.ConfigureAwait(false);
                         }
 
                         PackageReferenceBag.Add((assemblyName, CommitId));

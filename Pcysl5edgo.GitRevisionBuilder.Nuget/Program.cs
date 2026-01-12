@@ -17,7 +17,7 @@ internal static partial class Program
 
         const string help = """
             pack : Manually execution mode
-            benchmarkdotnet-analyzer : Called by custom task
+            csproj : pack nupkg files and overwrite csproj
             """;
         if (args.Length == 0)
         {
